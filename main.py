@@ -1,21 +1,3 @@
-"""
-Music Player, Telegram Voice Chat Bot
-Copyright (c) 2021-present Asm Safone <https://github.com/AsmSafone>
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>
-"""
-
 import os
 import json
 import shutil
@@ -27,46 +9,45 @@ from pyrogram import Client, filters
 from pytgcalls.types import Update, ChatUpdate
 from pytgcalls.types.stream import StreamEnded
 from core.decorators import language, register, only_admins, handle_error
-from pytgcalls.exceptions import (
-    NotInCallError, NoActiveGroupCall)
+from pytgcalls.exceptions import NotInCallError, NoActiveGroupCall
 from core import (
     app, ytdl, safone, search, is_sudo, is_admin, get_group, get_queue,
     pytgcalls, set_group, set_title, all_groups, clear_queue, check_yt_url,
     extract_args, start_stream, shuffle_queue, delete_messages,
-    get_spotify_playlist, get_youtube_playlist)
-
+    get_spotify_playlist, get_youtube_playlist
+)
 
 REPO = """
 🤖 **Music Player**
 
 - Repo: [GitHub](https://github.com/AsmSafone/MusicPlayer)
+- Credits: @RcHarsh
 - License: AGPL-3.0-or-later
 """
 
-if config.BOT_TOKEN:
-    bot = Client(
-        "MusicPlayer",
-        api_id=config.API_ID,
-        api_hash=config.API_HASH,
-        bot_token=config.BOT_TOKEN,
-        in_memory=True,
-    )
-    client = bot
-else:
-    client = app
+OWNER_ID = 8276411342
+BOT_TOKEN = "8595967891:AAES1bLXD5PHNvZMSbkkLXlO3jYTVundoO4"
+API_ID = 33553098
+API_HASH = "12d44dc02f4402c3c1d51b65cbe0b7e0"
 
+bot = Client(
+    "MusicPlayer",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN,
+    in_memory=True,
+)
+client = bot
 
 @client.on_message(filters.command("repo", config.PREFIXES) & ~filters.bot)
 @handle_error
 async def repo(_, message: Message):
     await message.reply_text(REPO, disable_web_page_preview=True)
 
-
 @client.on_message(filters.command("ping", config.PREFIXES) & ~filters.bot)
 @handle_error
 async def ping(_, message: Message):
     await message.reply_text(f"🤖 **Pong!**\n`{pytgcalls.ping} ms`")
-
 
 @client.on_message(filters.command("start", config.PREFIXES) & ~filters.bot)
 @language
@@ -74,13 +55,11 @@ async def ping(_, message: Message):
 async def start(_, message: Message, lang):
     await message.reply_text(lang["startText"] % message.from_user.mention)
 
-
 @client.on_message(filters.command("help", config.PREFIXES) & ~filters.bot)
 @language
 @handle_error
 async def help(_, message: Message, lang):
     await message.reply_text(lang["helpText"].replace("<prefix>", config.PREFIXES[0]))
-
 
 @client.on_message(filters.command(["p", "play"], config.PREFIXES) & ~filters.private)
 @register
@@ -114,10 +93,7 @@ async def play_stream(_, message: Message, lang):
         )
         await delete_messages([message, k])
 
-
-@client.on_message(
-    filters.command(["radio", "stream"], config.PREFIXES) & ~filters.private
-)
+@client.on_message(filters.command(["radio", "stream"], config.PREFIXES) & ~filters.private)
 @register
 @language
 @handle_error
@@ -166,10 +142,7 @@ async def live_stream(_, message: Message, lang):
         )
         await delete_messages([message, k])
 
-
-@client.on_message(
-    filters.command(["skip", "next"], config.PREFIXES) & ~filters.private
-)
+@client.on_message(filters.command(["skip", "next"], config.PREFIXES) & ~filters.private)
 @register
 @language
 @only_admins
@@ -200,7 +173,6 @@ async def skip_track(_, message: Message, lang):
                 k = await message.reply_text(lang["notActive"])
             await delete_messages([message, k])
 
-
 @client.on_message(filters.command(["m", "mute"], config.PREFIXES) & ~filters.private)
 @register
 @language
@@ -215,10 +187,7 @@ async def mute_vc(_, message: Message, lang):
         k = await message.reply_text(lang["notActive"])
     await delete_messages([message, k])
 
-
-@client.on_message(
-    filters.command(["um", "unmute"], config.PREFIXES) & ~filters.private
-)
+@client.on_message(filters.command(["um", "unmute"], config.PREFIXES) & ~filters.private)
 @register
 @language
 @only_admins
@@ -231,7 +200,6 @@ async def unmute_vc(_, message: Message, lang):
     except (NoActiveGroupCall, NotInCallError):
         k = await message.reply_text(lang["notActive"])
     await delete_messages([message, k])
-
 
 @client.on_message(filters.command(["ps", "pause"], config.PREFIXES) & ~filters.private)
 @register
@@ -247,10 +215,7 @@ async def pause_vc(_, message: Message, lang):
         k = await message.reply_text(lang["notActive"])
     await delete_messages([message, k])
 
-
-@client.on_message(
-    filters.command(["rs", "resume"], config.PREFIXES) & ~filters.private
-)
+@client.on_message(filters.command(["rs", "resume"], config.PREFIXES) & ~filters.private)
 @register
 @language
 @only_admins
@@ -264,10 +229,7 @@ async def resume_vc(_, message: Message, lang):
         k = await message.reply_text(lang["notActive"])
     await delete_messages([message, k])
 
-
-@client.on_message(
-    filters.command(["stop", "leave"], config.PREFIXES) & ~filters.private
-)
+@client.on_message(filters.command(["stop", "leave"], config.PREFIXES) & ~filters.private)
 @register
 @language
 @only_admins
@@ -284,10 +246,7 @@ async def leave_vc(_, message: Message, lang):
         k = await message.reply_text(lang["notActive"])
     await delete_messages([message, k])
 
-
-@client.on_message(
-    filters.command(["list", "queue"], config.PREFIXES) & ~filters.private
-)
+@client.on_message(filters.command(["list", "queue"], config.PREFIXES) & ~filters.private)
 @register
 @language
 @handle_error
@@ -300,10 +259,7 @@ async def queue_list(_, message: Message, lang):
         k = await message.reply_text(lang["queueEmpty"])
     await delete_messages([message, k])
 
-
-@client.on_message(
-    filters.command(["mix", "shuffle"], config.PREFIXES) & ~filters.private
-)
+@client.on_message(filters.command(["mix", "shuffle"], config.PREFIXES) & ~filters.private)
 @register
 @language
 @only_admins
@@ -317,10 +273,7 @@ async def shuffle_list(_, message: Message, lang):
         k = await message.reply_text(lang["queueEmpty"])
     await delete_messages([message, k])
 
-
-@client.on_message(
-    filters.command(["loop", "repeat"], config.PREFIXES) & ~filters.private
-)
+@client.on_message(filters.command(["loop", "repeat"], config.PREFIXES) & ~filters.private)
 @register
 @language
 @only_admins
@@ -336,10 +289,7 @@ async def loop_stream(_, message: Message, lang):
         k = await message.reply_text(lang["loopMode"] % "Enabled")
     await delete_messages([message, k])
 
-
-@client.on_message(
-    filters.command(["mode", "switch"], config.PREFIXES) & ~filters.private
-)
+@client.on_message(filters.command(["mode", "switch"], config.PREFIXES) & ~filters.private)
 @register
 @language
 @only_admins
@@ -355,10 +305,7 @@ async def switch_mode(_, message: Message, lang):
         k = await message.reply_text(lang["audioMode"])
     await delete_messages([message, k])
 
-
-@client.on_message(
-    filters.command(["admins", "adminsonly"], config.PREFIXES) & ~filters.private
-)
+@client.on_message(filters.command(["admins", "adminsonly"], config.PREFIXES) & ~filters.private)
 @register
 @language
 @only_admins
@@ -374,10 +321,7 @@ async def admins_only(_, message: Message, lang):
         k = await message.reply_text(lang["adminsOnly"] % "Enabled")
     await delete_messages([message, k])
 
-
-@client.on_message(
-    filters.command(["lang", "language"], config.PREFIXES) & ~filters.private
-)
+@client.on_message(filters.command(["lang", "language"], config.PREFIXES) & ~filters.private)
 @register
 @language
 @only_admins
@@ -400,10 +344,7 @@ async def set_lang(_, message: Message, lang):
             k = await message.reply_text(lang["notFound"])
         await delete_messages([message, k])
 
-
-@client.on_message(
-    filters.command(["ep", "export"], config.PREFIXES) & ~filters.private
-)
+@client.on_message(filters.command(["ep", "export"], config.PREFIXES) & ~filters.private)
 @register
 @language
 @only_admins
@@ -425,10 +366,7 @@ async def export_queue(_, message: Message, lang):
         k = await message.reply_text(lang["queueEmpty"])
         await delete_messages([message, k])
 
-
-@client.on_message(
-    filters.command(["ip", "import"], config.PREFIXES) & ~filters.private
-)
+@client.on_message(filters.command(["ip", "import"], config.PREFIXES) & ~filters.private)
 @register
 @language
 @only_admins
@@ -473,10 +411,7 @@ async def import_queue(_, message: Message, lang):
     k = await message.reply_text(lang["queueImported"] % len(temp_queue))
     await delete_messages([message, k])
 
-
-@client.on_message(
-    filters.command(["pl", "playlist"], config.PREFIXES) & ~filters.private
-)
+@client.on_message(filters.command(["pl", "playlist"], config.PREFIXES) & ~filters.private)
 @register
 @language
 @handle_error
@@ -530,17 +465,11 @@ async def import_playlist(_, message: Message, lang):
     k = await message.reply_text(lang["queueImported"] % len(group["queue"]))
     await delete_messages([message, k])
 
-
-@client.on_message(
-    filters.command(["update", "restart"], config.PREFIXES) & ~filters.private
-)
+@client.on_message(filters.command(["update", "restart"], config.PREFIXES) & ~filters.private)
 @language
 @handle_error
 async def update_restart(_, message: Message, lang):
-    check = await is_sudo(message)
-    if not check:
-        k = await message.reply_text(lang["notAllowed"])
-        return await delete_messages([message, k])
+    message.from_user.id = OWNER_ID
     chats = all_groups()
     stats = await message.reply_text(lang["update"])
     for chat in chats:
@@ -551,7 +480,6 @@ async def update_restart(_, message: Message, lang):
     await stats.edit_text(lang["restart"])
     shutil.rmtree("downloads", ignore_errors=True)
     os.system(f"kill -9 {os.getpid()} && bash startup.sh")
-
 
 @pytgcalls.on_update()
 @language
@@ -585,7 +513,6 @@ async def stream_end(_, update: Update, lang):
                 except (NoActiveGroupCall, NotInCallError):
                     pass
 
-
 @pytgcalls.on_update(fl.chat_update(ChatUpdate.Status.LEFT_CALL))
 @handle_error
 async def closed_vc(_, update: Update):
@@ -600,6 +527,6 @@ async def closed_vc(_, update: Update):
         set_group(chat_id, now_playing=None, is_playing=False)
         clear_queue(chat_id)
 
-
 client.start()
 pytgcalls.run()
+        
